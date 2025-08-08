@@ -1,0 +1,29 @@
+{
+	"servers": {
+		"context7": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"@upstash/context7-mcp@latest"
+			],
+			"gallery": true
+		},
+		"neon": {
+			"type": "http",
+			"url": "https://mcp.neon.tech/sse",
+			"gallery": true
+		},
+		"prisma-postgres": {
+			"type": "http",
+			"url": "https://mcp.prisma.io/mcp",
+			"gallery": true
+		},
+		"e2b-server": {
+			"command": "npx",
+			"args": ["-y", "@e2b/mcp-server"],
+			"env": { "E2B_API_KEY": "${e2bApiKey}" }
+		}
+	},
+	"inputs": []
+}
