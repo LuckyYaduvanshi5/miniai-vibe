@@ -1,19 +1,32 @@
 'use client';
-
-import { useTRPC } from "@/trpc/client";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
 
 export function Client() {
-    const trpc = useTRPC();
-    const { data } = useSuspenseQuery(trpc.createAI.queryOptions({ text: "Lucky" }));
+    const [status, setStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
+
+    async function triggerJob() {
+        try {
+            setStatus("pending");
+            const res = await fetch("/api/jobs/hello", { method: "POST" });
+            if (!res.ok) throw new Error("Request failed");
+            setStatus("success");
+        } catch {
+            setStatus("error");
+        } finally {
+            setTimeout(() => setStatus("idle"), 1500);
+        }
+    }
     
     return (
         <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">tRPC Response:</h1>
-            <pre className="bg-gray-100 p-4 rounded">
-                {JSON.stringify(data, null, 2)}
-            </pre>
+            <div className="flex items-center gap-3">
+                <Button onClick={triggerJob} disabled={status === "pending"}>
+                    {status === "pending" ? "Queuing…" : "Run background job"}
+                </Button>
+                {status === "success" && <span className="text-green-600">Queued</span>}
+                {status === "error" && <span className="text-red-600">Failed</span>}
+            </div>
         </div>
     );
 }
