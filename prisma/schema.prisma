@@ -29,3 +29,16 @@ model Post {
   authorId  Int
   author    User    @relation(fields: [authorId], references: [id])
 }
+
+// Stores structured AI planning output for site/code generation.
+model SitePlan {
+  id         Int      @id @default(autoincrement())
+  idea       String
+  full       String   // full markdown text
+  spec       String?  // extracted SPEC section
+  siteMap    String?  // extracted SITE_MAP section
+  components String?  // extracted COMPONENTS section
+  copy       String?  // extracted COPY section
+  codePlan   String?  // extracted CODE_PLAN section
+  createdAt  DateTime @default(now())
+}

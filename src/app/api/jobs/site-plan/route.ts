@@ -2,15 +2,12 @@ import { NextResponse } from "next/server";
 import { inngest } from "@/inngest/client";
 import { z } from "zod";
 
-const BodySchema = z
-  .object({
-    email: z.string().email().optional(),
-  })
-  .optional();
+const BodySchema = z.object({
+  idea: z.string().min(3, "idea is too short"),
+});
 
 export async function POST(req: Request) {
   try {
-    // Optional: simple header-based auth. If INNGEST_JOB_TOKEN is set, require matching header.
     const requiredToken = process.env.INNGEST_JOB_TOKEN;
     if (requiredToken) {
       const provided = req.headers.get("x-job-token");
@@ -19,26 +16,20 @@ export async function POST(req: Request) {
       }
     }
 
-    // Validate body (email is optional)
-    let email: string | undefined;
-    try {
-      const parsed = BodySchema.parse(await req.json().catch(() => undefined));
-      email = parsed?.email;
-    } catch {
+    const body = await req.json().catch(() => null);
+    const parsed = BodySchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
     }
 
-    // Send an event that triggers the existing `helloWorld` function
     await inngest.send({
-      name: "test/hello.world",
-      data: { email: email ?? "anon@example.com" },
+      name: "ai/site.plan",
+      data: { idea: parsed.data.idea },
     });
 
-    // Accepted for background processing
     return NextResponse.json({ ok: true }, { status: 202 });
   } catch {
-    // Avoid logging PII
-    console.error("Failed to queue job");
+    console.error("Failed to queue site plan job");
     return NextResponse.json({ ok: false, error: "Failed to queue job" }, { status: 500 });
   }
 }
